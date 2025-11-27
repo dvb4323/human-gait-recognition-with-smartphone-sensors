@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Đường dẫn đến thư mục HAPT Dataset sau khi giải nén
-DATASET_PATH = r"C:\Users\Binh\Desktop\Code\human-gait-recognition-with-smartphone-sensors\data\raw\HAPT"
+DATASET_PATH = r"/data/raw/HAPT"
 
 # Các file cần đọc
 signals_path = os.path.join(DATASET_PATH, "RawData")

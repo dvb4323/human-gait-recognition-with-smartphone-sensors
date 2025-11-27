@@ -4,10 +4,10 @@
 # ============================================
 
 import os
-from src.classical_model import train_classical_models
+from old_scripts.classical_model import train_classical_models
 
 # Đường dẫn dữ liệu đặc trưng
-features_dir = "data/features"
+features_dir = "../data/features"
 train_csv = os.path.join(features_dir, "train_features.csv")
 test_csv = os.path.join(features_dir, "test_features.csv")
 

@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy as np
 
 # Đường dẫn đến thư mục dataset
-base_path = r"C:\Users\Binh\Desktop\Code\human-gait-recognition-with-smartphone-sensors\data\raw\A_DeviceMotion_data\A_DeviceMotion_data"
+base_path = r"/data/raw/A_DeviceMotion_data/A_DeviceMotion_data"
 
 # Lấy danh sách các thư mục (mỗi thư mục là một hoạt động)
 activities = os.listdir(base_path)

@@ -6,10 +6,10 @@ import seaborn as sns
 import os
 
 # Đường dẫn tới file WISDM (phiên bản raw accelerometer)
-DATA_PATH = r"C:\Users\Binh\Desktop\Code\human-gait-recognition-with-smartphone-sensors\data\raw\WISDM_ar_v1.1\WISDM_ar_v1.1_raw.txt"
+DATA_PATH = r"/data/raw/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt"
 
 # Nơi lưu hình
-OUT_DIR = r"C:\Users\Binh\Desktop\Code\human-gait-recognition-with-smartphone-sensors\plots_wisdm"
+OUT_DIR = r"/plots_wisdm"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 pattern = re.compile(r'^\s*(\d+)\s*,\s*([^,]+)\s*,\s*([0-9]+)\s*,\s*([-\d\.eE]+)\s*,\s*([-\d\.eE]+)\s*,\s*([-\d\.eE]+)\s*[,;\s]*$')

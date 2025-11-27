@@ -4,8 +4,7 @@ Mô tả: Làm sạch dữ liệu, chuẩn hóa, và phân đoạn thành cửa 
 """
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from src.utils import sliding_window
-import os
+from old_scripts.utils import sliding_window
 
 
 def clean_data(X):

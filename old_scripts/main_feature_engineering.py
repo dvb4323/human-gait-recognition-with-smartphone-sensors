@@ -5,12 +5,11 @@
 
 import os
 import numpy as np
-import pandas as pd
-from src.feature_engineering import extract_features
-from src.visualization import generate_all_visualizations  # 🆕 Thêm module mới
+from old_scripts.feature_engineering import extract_features
+from old_scripts.visualization import generate_all_visualizations  # 🆕 Thêm module mới
 
 # Đường dẫn dữ liệu từ bước 1
-processed_path = "data/processed/har_data_windows.npz"
+processed_path = "../data/processed/har_data_windows.npz"
 print(f"📂 Đang tải dữ liệu từ {processed_path} ...")
 
 # Đọc dữ liệu cửa sổ đã lưu
@@ -26,7 +25,7 @@ train_features = extract_features(X_train, y_train, include_frequency=True)
 test_features = extract_features(X_test, y_test, include_frequency=True)
 
 # Lưu kết quả
-features_dir = "data/features"
+features_dir = "../data/features"
 os.makedirs(features_dir, exist_ok=True)
 train_csv = os.path.join(features_dir, "train_features.csv")
 test_csv = os.path.join(features_dir, "test_features.csv")
@@ -38,5 +37,5 @@ print(f"🧾 train_features: {train_features.shape}, test_features: {test_featur
 
 # 🔹 Sinh biểu đồ trực quan
 print("📊 Đang tạo biểu đồ trực quan...")
-generate_all_visualizations(train_csv, save_dir="reports/figures/train")
-generate_all_visualizations(test_csv, save_dir="reports/figures/test")
+generate_all_visualizations(train_csv, save_dir="../reports/figures/train")
+generate_all_visualizations(test_csv, save_dir="../reports/figures/test")

@@ -5,7 +5,7 @@ import seaborn as sns
 import os
 
 # Đường dẫn tới thư mục dataset
-DATA_PATH = r"C:\Users\Binh\Desktop\Code\human-gait-recognition-with-smartphone-sensors\data\raw\UCI HAR Dataset"
+DATA_PATH = r"/data/raw/UCI HAR Dataset"
 
 # Đọc danh sách đặc trưng và nhãn hoạt động
 features = pd.read_csv(os.path.join(DATA_PATH, "features.txt"), sep="\s+", header=None, names=["index", "feature"])

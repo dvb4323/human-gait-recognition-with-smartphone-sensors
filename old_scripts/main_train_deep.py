@@ -3,12 +3,11 @@
 # 🎯 Mục đích: Chạy huấn luyện mô hình học sâu
 # ============================================
 
-import os
 import numpy as np
-from src.deep_learning_model import train_cnn_model
+from old_scripts.deep_learning_model import train_cnn_model
 
 # Đường dẫn dữ liệu từ bước 1
-processed_path = "data/processed/har_data_windows.npz"
+processed_path = "../data/processed/har_data_windows.npz"
 print(f"📂 Đang tải dữ liệu từ {processed_path} ...")
 
 # Đọc dữ liệu cửa sổ đã lưu
