@@ -330,7 +330,7 @@ class OUSimilarGaitQualityAssessment:
             'mean_samples': np.mean(sample_counts),
             'std_samples': np.std(sample_counts),
             'short_files': len(short_files),
-            'long_files': len(long_files)
+            'long_files': len(long_files),
         }
         
         return sample_counts
@@ -400,7 +400,7 @@ def main():
     
     # Run all Phase 2 assessments
     # Use max_files=None to analyze ALL files, or set a number for testing
-    quality_metrics = qa.run_all_phase2(max_files=100)  # Analyze first 100 files
+    quality_metrics = qa.run_all_phase2(max_files=None)  # Analyze first 100 files
     
     # Save quality report
     output_dir = Path("reports")
