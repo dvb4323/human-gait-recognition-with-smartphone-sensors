@@ -1,3 +1,11 @@
 __pycache__/
 .idea/
 data/
+
+## Models
+.h5
+/logs/
+results/1d_cnn_20251127_235753/best_model.h5
+results/1d_cnn_20251127_235753/final_model.h5
+results/1d_cnn_20251127_235753/logs/train/events.out.tfevents.1764262673.LAPTOP-8FODK2GS.24360.0.v2
+results/1d_cnn_20251127_235753/logs/validation/events.out.tfevents.1764262683.LAPTOP-8FODK2GS.24360.1.v2
