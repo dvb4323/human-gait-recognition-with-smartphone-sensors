@@ -1,146 +1,85 @@
-# 1D CNN Model Training
+# Phase 1: Model Training Guide
 
 ## Overview
-Complete implementation of 1D Convolutional Neural Network for gait-based activity classification.
+Train 3 additional models to complete Phase 1: GRU, CNN-LSTM, and BiLSTM.
 
-## Quick Start
+## Quick Training Commands
 
-### Train Model
+### 1. GRU (Fastest - ~20-30 min)
 ```bash
 cd src/models
-python train.py
+# Edit train_lstm.py: set model_variant='gru'
+python train_lstm.py
 ```
 
-This will:
-1. Load preprocessed data from `data/processed/`
-2. Create and compile 1D CNN model
-3. Train for 50 epochs with early stopping
-4. Evaluate on test set
-5. Save results to `results/1d_cnn_TIMESTAMP/`
-
-### Expected Training Time
-- **GPU**: ~10-15 minutes
-- **CPU**: ~30-45 minutes
-
-## Modules
-
-### 1. data_loader.py
-Loads preprocessed `.npy` data and creates TensorFlow datasets.
-
-**Usage**:
-```python
-from data_loader import GaitDataLoader
-
-loader = GaitDataLoader('data/processed')
-data = loader.load_all()
-train_ds = loader.create_tf_dataset('train', batch_size=64)
+### 2. Bidirectional LSTM (~45-60 min)
+```bash
+cd src/models
+# Edit train_lstm.py: set model_variant='bidirectional'
+python train_lstm.py
 ```
 
-### 2. cnn_1d.py
-Three 1D CNN model variants:
-
-- **Simple** (~50K params): Fast, good baseline
-- **Standard** (~200K params): Balanced performance/speed
-- **Deep** (~500K params): More capacity, needs more data
-
-**Usage**:
-```python
-from cnn_1d import create_1d_cnn, create_simple_1d_cnn, compile_model
-
-model = create_1d_cnn(input_shape=(200, 6), num_classes=5)
-model = compile_model(model, learning_rate=0.001)
-```
-
-### 3. train.py
-Complete training pipeline with:
-- ✅ Model checkpointing (saves best model)
-- ✅ Early stopping (patience=10 epochs)
-- ✅ Learning rate reduction (on plateau)
-- ✅ TensorBoard logging
-- ✅ Automatic evaluation and visualization
-
-## Configuration
-
-Edit `train.py` to customize:
-```python
-config = {
-    'model_variant': 'standard',  # 'simple', 'standard', or 'deep'
-    'batch_size': 64,
-    'epochs': 50,
-    'learning_rate': 0.001,
-    'early_stopping_patience': 10
-}
-```
-
-## Output Structure
-
-```
-results/1d_cnn_TIMESTAMP/
-├── best_model.h5              # Best model (highest val_accuracy)
-├── final_model.h5             # Final model after all epochs
-├── config.json                # Training configuration
-├── history.json               # Training history
-├── training_history.csv       # Epoch-by-epoch metrics
-├── training_history.png       # Accuracy/loss plots
-├── confusion_matrix.png       # Confusion matrix visualization
-├── classification_report.json # Per-class metrics
-├── evaluation_results.json    # Test set results
-└── logs/                      # TensorBoard logs
+### 3. CNN-LSTM Hybrid (~30-45 min)
+```bash
+cd src/models
+python train_cnn_lstm.py
 ```
 
 ## Expected Results
 
-Based on similar HAR tasks with IMU data:
-- **Target accuracy**: 80-85% on test set
-- **Training time**: ~10-15 min (GPU)
-- **Best epoch**: Usually around 20-30 epochs
+| Model | Expected Accuracy | Training Time | Parameters |
+|-------|------------------|---------------|------------|
+| **GRU** | 90-91% | 20-30 min | ~150K |
+| **BiLSTM** | 91-92% | 45-60 min | ~400K |
+| **CNN-LSTM** | 91-93% | 30-45 min | ~250K |
 
-### Per-Class Performance
-- Class 0 (Flat walk): 85-90% (most common)
-- Class 1 (Up stairs): 70-75% (augmented)
-- Class 2 (Down stairs): 70-75% (augmented)
-- Class 3 (Up slope): 75-80%
-- Class 4 (Down slope): 75-80%
+## After Training
 
-## Monitoring Training
+You'll have **5 models total**:
+1. ✅ 1D CNN: 90.3%
+2. ✅ LSTM: 91.6%
+3. ⏳ GRU: ?
+4. ⏳ BiLSTM: ?
+5. ⏳ CNN-LSTM: ?
 
-### TensorBoard
-```bash
-tensorboard --logdir results/1d_cnn_TIMESTAMP/logs
-```
-Then open http://localhost:6006
+## Phase 1 Completion Checklist
 
-### Training Progress
-Watch for:
-- ✅ Validation accuracy increasing
-- ✅ Training/validation gap not too large (overfitting check)
-- ✅ Learning rate reductions (indicates plateau)
-- ✅ Early stopping trigger (if val_loss doesn't improve)
+- [ ] Train GRU model
+- [ ] Train BiLSTM model
+- [ ] Train CNN-LSTM model
+- [ ] Compare all 5 models
+- [ ] Select top 2-3 for Phase 2
 
-## Troubleshooting
+## Model Selection Criteria
 
-### Low Accuracy (<70%)
-1. Check data quality (visualize samples)
-2. Increase augmentation factor
-3. Try different model variant
-4. Adjust learning rate
+Select models based on:
+1. **Accuracy** > 91%
+2. **Stairs performance** (Class 1, 2)
+3. **Balanced F1-scores** across classes
+4. **Inference speed** (if deploying to edge devices)
 
-### Overfitting (train >> val)
-1. Increase dropout (0.5 → 0.6)
-2. Add more augmentation
-3. Use simpler model variant
-4. Reduce training epochs
+## Phase 2 Preview
 
-### Underfitting (both low)
-1. Use deeper model variant
-2. Train longer (more epochs)
-3. Increase learning rate
-4. Check data preprocessing
+After selecting top 2-3 models, you'll:
+- Fine-tune hyperparameters
+- Try focal loss for stairs
+- Experiment with window sizes
+- Create ensemble
+- Target: 92-94% accuracy
 
-## Next Steps
+## Tips
 
-After training:
-1. Review `classification_report.json` for per-class performance
-2. Analyze `confusion_matrix.png` for common errors
-3. If performance is good, try LSTM or CNN-LSTM
-4. If performance is low, iterate on preprocessing/augmentation
+**For GRU**:
+- Faster than LSTM
+- Similar performance expected
+- Good if you need speed
+
+**For BiLSTM**:
+- Sees full context (forward + backward)
+- Best for complex patterns
+- May improve stairs/slope distinction
+
+**For CNN-LSTM**:
+- Best of both worlds
+- CNN extracts features, LSTM models time
+- Likely highest accuracy
