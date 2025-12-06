@@ -241,7 +241,7 @@ def main():
     print("LOADING DATA")
     print("=" * 80)
     
-    loader = GaitDataLoader('data/processed')
+    loader = GaitDataLoader('data/processed_no_overlap')
     data = loader.load_all()
     loader.print_summary()
     
