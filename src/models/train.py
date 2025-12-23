@@ -233,13 +233,19 @@ class ModelTrainer:
         
         print(f"\n💾 Confusion matrix saved to: {cm_path}")
     
-    def plot_training_history(self):
-        """Plot and save training history."""
+    def plot_training_history(self, test_accuracy=None):
+        """Plot and save training history with optional test accuracy."""
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
         
         # Accuracy
-        ax1.plot(self.history.history['accuracy'], label='Train')
-        ax1.plot(self.history.history['val_accuracy'], label='Validation')
+        ax1.plot(self.history.history['accuracy'], label='Train', linewidth=2)
+        ax1.plot(self.history.history['val_accuracy'], label='Validation', linewidth=2)
+        
+        # Add test accuracy as horizontal line
+        if test_accuracy is not None:
+            ax1.axhline(y=test_accuracy, color='red', linestyle='--', linewidth=2, 
+                       label=f'Test ({test_accuracy:.4f})')
+        
         ax1.set_title('Model Accuracy')
         ax1.set_xlabel('Epoch')
         ax1.set_ylabel('Accuracy')
@@ -247,8 +253,8 @@ class ModelTrainer:
         ax1.grid(True, alpha=0.3)
         
         # Loss
-        ax2.plot(self.history.history['loss'], label='Train')
-        ax2.plot(self.history.history['val_loss'], label='Validation')
+        ax2.plot(self.history.history['loss'], label='Train', linewidth=2)
+        ax2.plot(self.history.history['val_loss'], label='Validation', linewidth=2)
         ax2.set_title('Model Loss')
         ax2.set_xlabel('Epoch')
         ax2.set_ylabel('Loss')
@@ -310,12 +316,12 @@ def main():
     # Train model
     trainer.train(train_ds, val_ds, class_weights=class_weights)
     
-    # Plot training history
-    trainer.plot_training_history()
-    
-    # Evaluate model
+    # Evaluate model (do this before plotting to get test accuracy)
     X_test, y_test = data['test']
     results = trainer.evaluate(test_ds, X_test, y_test)
+    
+    # Plot training history with test accuracy
+    trainer.plot_training_history(test_accuracy=results['test_accuracy'])
     
     # Print final summary
     print("\n" + "✅" * 40)
