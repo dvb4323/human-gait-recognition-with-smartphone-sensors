@@ -285,7 +285,7 @@ def main():
     # Configuration
     config = {
         'model_name': 'lstm',
-        'model_variant': 'standard',  # 'simple', 'standard', 'bidirectional', or 'gru'
+        'model_variant': 'bidirectional',  # 'simple', 'standard', 'bidirectional', or 'gru'
         'data_dir': 'data/processed',
         'input_shape': (200, 6),
         'num_classes': 5,
