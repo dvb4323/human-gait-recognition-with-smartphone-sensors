@@ -97,7 +97,7 @@ class LSTMTrainer:
         
         return callbacks
     
-    def train(self, train_ds, val_ds, class_weights=None):
+    def train(self, train_ds, val_ds, class_weights=None, callbacks=None):
         """
         Train model.
         
@@ -285,7 +285,8 @@ def main():
     # Configuration
     config = {
         'model_name': 'lstm',
-        'model_variant': 'simple',  # 'simple', 'standard', 'bidirectional', or 'gru'
+        'model_variant': 'standard',  # 'simple', 'standard', 'bidirectional', or 'gru'
+        'data_dir': 'data/processed',
         'input_shape': (200, 6),
         'num_classes': 5,
         'batch_size': 64,
@@ -305,7 +306,7 @@ def main():
     print("LOADING DATA")
     print("=" * 80)
     
-    loader = GaitDataLoader('data/processed_no_overlap')
+    loader = GaitDataLoader(config['data_dir'])
     data = loader.load_all()
     loader.print_summary()
     
@@ -316,15 +317,15 @@ def main():
     test_ds = loader.create_tf_dataset('test', batch_size=config['batch_size'], shuffle=False)
     
     # Calculate class weights
-    class_weights = loader.get_class_weights('train')
-    print(f"\n📊 Class weights: {class_weights}")
+    # class_weights = loader.get_class_weights('train')
+    # print(f"\n📊 Class weights: {class_weights}")
     
     # Initialize trainer
     trainer = LSTMTrainer(config)
     trainer.setup_results_dir()
     
     # Train model
-    trainer.train(train_ds, val_ds, class_weights=class_weights)
+    trainer.train(train_ds, val_ds, callbacks=trainer.create_callbacks)
     
     # Evaluate model (do this before plotting to get test accuracy)
     X_test, y_test = data['test']
