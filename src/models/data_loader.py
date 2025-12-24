@@ -38,7 +38,9 @@ class GaitDataLoader:
         
         X = np.load(split_dir / f'X_{split}.npy')
         y = np.load(split_dir / f'y_{split}.npy')
-        
+        if (split_dir / f'{split}_subjects.npy').exists():
+            subjects = np.load(split_dir / f'{split}_subjects.npy')
+            self.data[f'{split}_subjects'] = subjects
         # Load metadata
         with open(split_dir / f'metadata_{split}.json', 'r') as f:
             self.metadata[split] = json.load(f)
@@ -63,7 +65,7 @@ class GaitDataLoader:
         
         return self.data
     
-    def create_tf_dataset(self, split: str, batch_size: int = 64, 
+    def create_tf_dataset(self, split: str, batch_size: int = 32, 
                          shuffle: bool = True) -> tf.data.Dataset:
         """
         Create TensorFlow dataset.
@@ -78,10 +80,11 @@ class GaitDataLoader:
         """
         X, y = self.data[split]
         
-        dataset = tf.data.Dataset.from_tensor_slices((X, y))
+        dataset = tf.data.Dataset.from_tensor_slices((X.astype(np.float32), y.astype(np.int64)))
         
         if shuffle:
-            dataset = dataset.shuffle(buffer_size=10000, seed=42)
+            buffer_size = len(X)
+            dataset = dataset.shuffle(buffer_size=buffer_size, seed=42)
         
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)

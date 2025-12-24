@@ -135,17 +135,18 @@ def create_windows(data: np.ndarray, labels: np.ndarray,
     
     for start_idx in range(0, n_samples - window_size + 1, step_size):
         end_idx = start_idx + window_size
+        window_label_seq = labels[start_idx:end_idx]
+        
+        unique, counts = np.unique(window_label_seq, return_counts=True)
         
         # Extract window
         window = data[start_idx:end_idx, :]
-        window_label_seq = labels[start_idx:end_idx]
         
         # Majority vote for window label
-        unique, counts = np.unique(window_label_seq, return_counts=True)
-        majority_label = unique[np.argmax(counts)]
-        
-        windows.append(window)
-        window_labels.append(majority_label)
+        majority_label = unique[np.argmax(counts)] 
+        if majority_label != -1:      
+            windows.append(window)
+            window_labels.append(majority_label)
     
     return np.array(windows), np.array(window_labels)
 

@@ -7,4 +7,5 @@ data/
 *.v2
 *.tflite
 /logs/
-results/
+results/logs
+human-gait/

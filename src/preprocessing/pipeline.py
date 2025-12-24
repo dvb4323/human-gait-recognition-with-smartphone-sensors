@@ -43,34 +43,46 @@ class PreprocessingPipeline:
         print("=" * 80)
         self._load_data()
         
-        # Step 2: Create windows
-        print("\n" + "=" * 80)
-        print("STEP 2: CREATING WINDOWS")
-        print("=" * 80)
-        self._create_windows()
-        
-        # Step 3: Split data
-        print("\n" + "=" * 80)
-        print("STEP 3: TRAIN/VAL/TEST SPLIT")
-        print("=" * 80)
-        self._split_data()
-        
-        # Step 4: Preprocess
-        print("\n" + "=" * 80)
-        print("STEP 4: PREPROCESSING")
-        print("=" * 80)
-        self._preprocess_data()
-        
-        # Step 5: Augment training data
-        print("\n" + "=" * 80)
-        print("STEP 5: DATA AUGMENTATION")
-        print("=" * 80)
+        # STEP 2: Subject-Wise Split
+        gallery_subjects = self.loader.get_gallery_subjects()
+        probe_subjects = self.loader.get_probe_subjects()
+    
+        # Split Gallery into Train and Val by Subject ID
+        train_ids, val_ids = train_test_split(
+            gallery_subjects, 
+            test_size=self.config['val_split'], 
+            random_state=self.config['random_seed']
+        )
+        test_ids = probe_subjects
+    
+        # STEP 3: Fit Preprocessor ONLY on Training Subjects
+        self.preprocessor = SensorPreprocessor(
+            normalize=self.config['normalize'],
+            filter_data=self.config['filter_data'],
+            filter_cutoff=self.config['filter_cutoff'],
+            sampling_rate=self.config['sampling_rate']
+        )
+        print("📊 Fitting preprocessor on raw training data...")
+        train_raw_concatenated = np.concatenate(
+            [self.data['raw'][sid]['sensor_data'] for sid in train_ids], axis=0
+        )
+        # Fit normalization on continuous data, not overlapping windows
+        self.preprocessor.fit(train_raw_concatenated) 
+    
+        # STEP 4: Process groups independently (Transform -> Window)
+        print("📊 Processing Train set...")
+        self.data['X_train'], self.data['y_train'], self.data['train_subjects'] = self._process_group(train_ids)
+    
+        print("📊 Processing Val set...")
+        self.data['X_val'], self.data['y_val'], self.data['val_subjects'] = self._process_group(val_ids)
+    
+        print("📊 Processing Test set...")
+        self.data['X_test'], self.data['y_test'], self.data['test_subjects'] = self._process_group(test_ids)
+    
+        # STEP 5: Augment only the training windows
         self._augment_data()
-        
-        # Step 6: Save processed data
-        print("\n" + "=" * 80)
-        print("STEP 6: SAVING PROCESSED DATA")
-        print("=" * 80)
+    
+        # STEP 6: Save
         self._save_data()
         
         print("\n" + "✅" * 40)
@@ -252,6 +264,7 @@ class PreprocessingPipeline:
         output_dir = Path(self.config['output_dir'])
         output_dir.mkdir(parents=True, exist_ok=True)
         
+        total_windows = len(self.data['X_train']) + len(self.data['X_val']) + len(self.data['X_test'])
         # Save train/val/test splits
         for split in ['train', 'val', 'test']:
             split_dir = output_dir / split
@@ -260,22 +273,25 @@ class PreprocessingPipeline:
             # Save arrays
             np.save(split_dir / f'X_{split}.npy', self.data[f'X_{split}'])
             np.save(split_dir / f'y_{split}.npy', self.data[f'y_{split}'])
+            np.save(split_dir / f'{split}_subjects.npy', self.data[f'{split}_subjects'])
             
+            unique_subjects = np.unique(self.data[f'{split}_subjects'])
+            classes, counts = np.unique(self.data[f'y_{split}'], return_counts=True)
             # Save metadata
             metadata = {
                 'num_samples': len(self.data[f'X_{split}']),
-                'shape': self.data[f'X_{split}'].shape,
-                'num_subjects': len(np.unique(self.data[f'{split}_subjects'])),
+                'shape': list(self.data[f'X_{split}'].shape),  # Convert to list to handle numpy arrays self.data[f'X_{split}'].shape,
+                'num_subjects': len(unique_subjects),
                 'class_distribution': {
                     int(cls): int(cnt) 
-                    for cls, cnt in zip(*np.unique(self.data[f'y_{split}'], return_counts=True))
+                    for cls, cnt in zip(classes, counts)
                 }
             }
             
             with open(split_dir / f'metadata_{split}.json', 'w') as f:
                 json.dump(metadata, f, indent=2)
             
-            print(f"✅ Saved {split} split to {split_dir}")
+            print(f"✅ Saved {split} split ({len(unique_subjects)} subjects) to {split_dir}")
         
         # Save preprocessing config
         config_path = output_dir / 'preprocessing_config.json'
@@ -290,7 +306,7 @@ class PreprocessingPipeline:
         # Save summary
         summary = {
             'total_subjects': self.loader.metadata['num_subjects'],
-            'total_windows': len(self.data['windows']),
+            'total_windows': total_windows,
             'train_windows': len(self.data['X_train']),
             'val_windows': len(self.data['X_val']),
             'test_windows': len(self.data['X_test']),
@@ -305,6 +321,32 @@ class PreprocessingPipeline:
         
         print(f"✅ Saved summary to {summary_path}")
 
+    def _process_group(self, subject_ids):
+        group_windows = []
+        group_labels = []
+        group_subject_ids = []
+    
+        for sid in subject_ids:
+            raw_sensor = self.data['raw'][sid]['sensor_data']
+            raw_labels = self.data['raw'][sid]['class_labels']
+        
+            # 1. Transform (Normalize/Filter)
+            processed_sensor = self.preprocessor.transform(raw_sensor)
+        
+            # 2. Windowing
+            windows, window_labels = create_windows(
+                processed_sensor, 
+                raw_labels, 
+                self.config['window_size'], 
+                self.config['overlap']
+            )
+        
+            if len(windows) > 0:
+                group_windows.append(windows)
+                group_labels.append(window_labels)
+                group_subject_ids.append(np.full(len(windows), sid))
+            
+        return np.concatenate(group_windows, axis=0), np.concatenate(group_labels, axis=0), np.concatenate(group_subject_ids, axis=0)
 
 def main():
     """Run preprocessing pipeline with default configuration."""
@@ -314,11 +356,11 @@ def main():
         'output_dir': 'data/processed',
         
         # Data loading
-        'remove_unlabeled': True,  # Remove ClassLabel = -1
+        'remove_unlabeled': False,
         
         # Windowing
         'window_size': 200,  # 2 seconds at 100 Hz
-        'overlap': 0.5,  # 50% overlap
+        'overlap': 0.75,  # 75% overlap
         
         # Preprocessing
         'normalize': True,
@@ -332,7 +374,7 @@ def main():
         
         # Augmentation
         'augment': True,
-        'minority_classes': [1, 2],  # Up/down stairs
+        'minority_classes': [1, 2, 3, 4],  # Up/down stairs
         'augmentation_factor': 10  # 10x augmentation
     }
     
