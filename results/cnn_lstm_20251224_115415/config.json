@@ -1,0 +1,16 @@
+{
+  "model_name": "cnn_lstm",
+  "data_dir": "data/processed",
+  "model_variant": "standard",
+  "input_shape": [
+    200,
+    6
+  ],
+  "num_classes": 5,
+  "batch_size": 64,
+  "epochs": 50,
+  "learning_rate": 0.001,
+  "early_stopping_patience": 10,
+  "reduce_lr_patience": 5,
+  "random_seed": 42
+}

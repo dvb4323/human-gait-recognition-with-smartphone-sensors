@@ -80,7 +80,7 @@ class CNNLSTMTrainer:
         
         return callbacks
     
-    def train(self, train_ds, val_ds, class_weights=None):
+    def train(self, train_ds, val_ds, class_weights=None, callbacks=None):
         print("\n" + "=" * 80)
         print("TRAINING MODEL")
         print("=" * 80)
@@ -231,6 +231,7 @@ class CNNLSTMTrainer:
 def main():
     config = {
         'model_name': 'cnn_lstm',
+        'data_dir': 'data/processed',
         'model_variant': 'standard',  # 'simple', 'standard', or 'deep'
         'input_shape': (200, 6),
         'num_classes': 5,
@@ -250,7 +251,7 @@ def main():
     print("LOADING DATA")
     print("=" * 80)
     
-    loader = GaitDataLoader('data/processed_no_overlap')
+    loader = GaitDataLoader(config['data_dir'])
     data = loader.load_all()
     loader.print_summary()
     
@@ -259,13 +260,18 @@ def main():
     val_ds = loader.create_tf_dataset('val', batch_size=config['batch_size'], shuffle=False)
     test_ds = loader.create_tf_dataset('test', batch_size=config['batch_size'], shuffle=False)
     
-    class_weights = loader.get_class_weights('train')
-    print(f"\n📊 Class weights: {class_weights}")
+    # class_weights = loader.get_class_weights('train')
+    # print(f"\n📊 Class weights: {class_weights}")
+    
+    callbacks = [
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=12, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=6)
+    ]
     
     trainer = CNNLSTMTrainer(config)
     trainer.setup_results_dir()
     
-    trainer.train(train_ds, val_ds, class_weights=class_weights)
+    trainer.train(train_ds, val_ds, callbacks=callbacks)
     
     X_test, y_test = data['test']
     results = trainer.evaluate(test_ds, X_test, y_test)
