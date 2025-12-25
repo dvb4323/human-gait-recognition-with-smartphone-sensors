@@ -19,9 +19,7 @@ from data_loader import GaitDataLoader
 from cnn_lstm import create_cnn_lstm, create_simple_cnn_lstm, create_deep_cnn_lstm, compile_model
 
 
-class CNNLSTMTrainer:
-    """Train and evaluate CNN-LSTM model."""
-    
+class CNNLSTMTrainer:  
     def __init__(self, config: dict):
         self.config = config
         self.model = None
@@ -37,7 +35,7 @@ class CNNLSTMTrainer:
         self.results_dir = Path(f"results/{model_name}_{timestamp}")
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"\n📁 Results will be saved to: {self.results_dir}")
+        print(f"\nResults will be saved to: {self.results_dir}")
         
         with open(self.results_dir / 'config.json', 'w') as f:
             json.dump(self.config, f, indent=2)
@@ -107,13 +105,13 @@ class CNNLSTMTrainer:
             learning_rate=self.config['learning_rate']
         )
         
-        print("\n📊 Model Architecture:")
+        print("\nModel Architecture:")
         self.model.summary()
-        print(f"\n📊 Total parameters: {self.model.count_params():,}")
+        print(f"\nTotal parameters: {self.model.count_params():,}")
         
         callbacks = self.create_callbacks()
         
-        print(f"\n🚀 Starting training for {self.config['epochs']} epochs...")
+        print(f"\nStarting training for {self.config['epochs']} epochs...")
         print(f"   Batch size: {self.config['batch_size']}")
         print(f"   Learning rate: {self.config['learning_rate']}")
         
@@ -126,11 +124,11 @@ class CNNLSTMTrainer:
             verbose=1
         )
         
-        print("\n✅ Training complete!")
+        print("\nTraining complete!")
         
         final_model_path = self.results_dir / 'final_model.h5'
         self.model.save(final_model_path)
-        print(f"💾 Final model saved to: {final_model_path}")
+        print(f"Final model saved to: {final_model_path}")
         
         history_path = self.results_dir / 'history.json'
         with open(history_path, 'w') as f:
@@ -144,8 +142,8 @@ class CNNLSTMTrainer:
         print("=" * 80)
         
         test_loss, test_acc = self.model.evaluate(test_ds, verbose=1)
-        print(f"\n📊 Test Loss: {test_loss:.4f}")
-        print(f"📊 Test Accuracy: {test_acc:.4f}")
+        print(f"\nTest Loss: {test_loss:.4f}")
+        print(f"Test Accuracy: {test_acc:.4f}")
         
         y_pred_probs = self.model.predict(X_test, verbose=1)
         y_pred = np.argmax(y_pred_probs, axis=1)
@@ -189,7 +187,7 @@ class CNNLSTMTrainer:
         plt.savefig(cm_path, dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"\n💾 Confusion matrix saved to: {cm_path}")
+        print(f"\nConfusion matrix saved to: {cm_path}")
     
     def plot_training_history(self, test_accuracy=None):
         """Plot and save training history with optional test accuracy."""
@@ -225,7 +223,7 @@ class CNNLSTMTrainer:
         plt.savefig(history_path, dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"💾 Training history plot saved to: {history_path}")
+        print(f"Training history plot saved to: {history_path}")
 
 
 def main():
@@ -243,9 +241,9 @@ def main():
         'random_seed': 42
     }
     
-    print("\n" + "🚀" * 40)
+    print("\n" + "-" * 40)
     print("CNN-LSTM TRAINING PIPELINE")
-    print("🚀" * 40)
+    print("-" * 40)
     
     print("\n" + "=" * 80)
     print("LOADING DATA")
@@ -255,13 +253,10 @@ def main():
     data = loader.load_all()
     loader.print_summary()
     
-    print("\n📊 Creating TensorFlow datasets...")
+    print("\nCreating TensorFlow datasets...")
     train_ds = loader.create_tf_dataset('train', batch_size=config['batch_size'], shuffle=True)
     val_ds = loader.create_tf_dataset('val', batch_size=config['batch_size'], shuffle=False)
     test_ds = loader.create_tf_dataset('test', batch_size=config['batch_size'], shuffle=False)
-    
-    # class_weights = loader.get_class_weights('train')
-    # print(f"\n📊 Class weights: {class_weights}")
     
     callbacks = [
         tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=12, restore_best_weights=True),
@@ -279,11 +274,11 @@ def main():
     # Plot training history with test accuracy
     trainer.plot_training_history(test_accuracy=results['test_accuracy'])
     
-    print("\n" + "✅" * 40)
+    print("\n" + "-" * 40)
     print("TRAINING COMPLETE!")
-    print("✅" * 40)
-    print(f"\n📊 Final Test Accuracy: {results['test_accuracy']:.4f}")
-    print(f"📁 Results saved to: {trainer.results_dir}")
+    print("-" * 40)
+    print(f"\n Final Test Accuracy: {results['test_accuracy']:.4f}")
+    print(f" Results saved to: {trainer.results_dir}")
     print("\n" + "=" * 80)
 
 

@@ -1,8 +1,3 @@
-"""
-Main preprocessing pipeline for OU-SimilarGaitActivities dataset.
-Processes Center sensor data and creates train/val/test splits.
-"""
-
 import numpy as np
 import json
 from pathlib import Path
@@ -17,25 +12,17 @@ from augmentation import balance_classes
 
 
 class PreprocessingPipeline:
-    """Complete preprocessing pipeline for gait recognition."""
     
     def __init__(self, config: dict):
-        """
-        Initialize pipeline with configuration.
-        
-        Args:
-            config: Configuration dictionary
-        """
         self.config = config
         self.loader = None
         self.preprocessor = None
         self.data = {}
         
     def run(self):
-        """Run complete preprocessing pipeline."""
-        print("\n" + "🚀" * 40)
+        print("\n" + "-" * 40)
         print("PREPROCESSING PIPELINE - CENTER SENSOR")
-        print("🚀" * 40)
+        print("-" * 40)
         
         # Step 1: Load data
         print("\n" + "=" * 80)
@@ -62,7 +49,7 @@ class PreprocessingPipeline:
             filter_cutoff=self.config['filter_cutoff'],
             sampling_rate=self.config['sampling_rate']
         )
-        print("📊 Fitting preprocessor on raw training data...")
+        print("Fitting preprocessor on raw training data...")
         train_raw_concatenated = np.concatenate(
             [self.data['raw'][sid]['sensor_data'] for sid in train_ids], axis=0
         )
@@ -70,13 +57,13 @@ class PreprocessingPipeline:
         self.preprocessor.fit(train_raw_concatenated) 
     
         # STEP 4: Process groups independently (Transform -> Window)
-        print("📊 Processing Train set...")
+        print("Processing Train set...")
         self.data['X_train'], self.data['y_train'], self.data['train_subjects'] = self._process_group(train_ids)
     
-        print("📊 Processing Val set...")
+        print("Processing Val set...")
         self.data['X_val'], self.data['y_val'], self.data['val_subjects'] = self._process_group(val_ids)
     
-        print("📊 Processing Test set...")
+        print("Processing Test set...")
         self.data['X_test'], self.data['y_test'], self.data['test_subjects'] = self._process_group(test_ids)
     
         # STEP 5: Augment only the training windows
@@ -85,9 +72,9 @@ class PreprocessingPipeline:
         # STEP 6: Save
         self._save_data()
         
-        print("\n" + "✅" * 40)
+        print("\n" + "-" * 40)
         print("PREPROCESSING COMPLETE!")
-        print("✅" * 40)
+        print("-" * 40)
     
     def _load_data(self):
         """Load raw data."""
@@ -102,7 +89,6 @@ class PreprocessingPipeline:
         self.data['raw'] = raw_data
     
     def _create_windows(self):
-        """Create fixed-length windows from continuous data."""
         window_size = self.config['window_size']
         overlap = self.config['overlap']
         
@@ -110,8 +96,8 @@ class PreprocessingPipeline:
         all_labels = []
         all_subject_ids = []
         
-        print(f"\n📊 Window size: {window_size} samples ({window_size/100:.1f}s)")
-        print(f"📊 Overlap: {overlap*100:.0f}%")
+        print(f"\nWindow size: {window_size} samples ({window_size/100:.1f}s)")
+        print(f"Overlap: {overlap*100:.0f}%")
         
         for subject_id, subject_data in tqdm(self.data['raw'].items(), desc="Creating windows"):
             sensor_data = subject_data['sensor_data']
@@ -131,18 +117,17 @@ class PreprocessingPipeline:
         self.data['labels'] = np.concatenate(all_labels, axis=0)
         self.data['subject_ids'] = np.array(all_subject_ids)
         
-        print(f"\n✅ Total windows created: {len(self.data['windows']):,}")
-        print(f"✅ Window shape: {self.data['windows'].shape}")
+        print(f"\nTotal windows created: {len(self.data['windows']):,}")
+        print(f"Window shape: {self.data['windows'].shape}")
         
         # Print class distribution
-        print(f"\n📈 Class distribution in windows:")
+        print(f"\nClass distribution in windows:")
         unique, counts = np.unique(self.data['labels'], return_counts=True)
         for cls, cnt in zip(unique, counts):
             pct = cnt / len(self.data['labels']) * 100
             print(f"  Class {int(cls)}: {cnt:,} windows ({pct:.2f}%)")
     
     def _split_data(self):
-        """Split data into train/val/test sets."""
         gallery_subjects = self.loader.get_gallery_subjects()
         probe_subjects = self.loader.get_probe_subjects()
         
@@ -181,9 +166,9 @@ class PreprocessingPipeline:
         self.data['y_test'] = self.data['labels'][probe_mask]
         self.data['test_subjects'] = self.data['subject_ids'][probe_mask]
         
-        print(f"\n✅ Train set: {len(self.data['X_train']):,} windows from {len(train_subjects)} subjects")
-        print(f"✅ Val set: {len(self.data['X_val']):,} windows from {len(val_subjects)} subjects")
-        print(f"✅ Test set: {len(self.data['X_test']):,} windows from {len(probe_subjects)} subjects")
+        print(f"\nTrain set: {len(self.data['X_train']):,} windows from {len(train_subjects)} subjects")
+        print(f"Val set: {len(self.data['X_val']):,} windows from {len(val_subjects)} subjects")
+        print(f"Test set: {len(self.data['X_test']):,} windows from {len(probe_subjects)} subjects")
         
         # Print class distribution per split
         for split_name in ['train', 'val', 'test']:
@@ -195,7 +180,6 @@ class PreprocessingPipeline:
                 print(f"  Class {int(cls)}: {cnt:,} ({pct:.2f}%)")
     
     def _preprocess_data(self):
-        """Apply preprocessing transformations."""
         # Initialize preprocessor
         self.preprocessor = SensorPreprocessor(
             normalize=self.config['normalize'],
@@ -205,12 +189,12 @@ class PreprocessingPipeline:
         )
         
         # Fit on training data
-        print("\n📊 Fitting preprocessor on training data...")
+        print("\nFitting preprocessor on training data...")
         train_flat = self.data['X_train'].reshape(-1, self.data['X_train'].shape[-1])
         self.preprocessor.fit(train_flat)
         
         # Transform all splits
-        print("📊 Transforming data...")
+        print("Transforming data...")
         for split in ['train', 'val', 'test']:
             X = self.data[f'X_{split}']
             original_shape = X.shape
@@ -222,19 +206,19 @@ class PreprocessingPipeline:
             # Reshape back
             self.data[f'X_{split}'] = X_processed.reshape(original_shape)
         
-        print("✅ Preprocessing applied to all splits")
+        print("Preprocessing applied to all splits")
     
     def _augment_data(self):
         """Augment training data to balance classes."""
         if not self.config['augment']:
-            print("⏭️  Skipping augmentation (disabled in config)")
+            print("Skipping augmentation (disabled in config)")
             return
         
         minority_classes = self.config['minority_classes']
         augmentation_factor = self.config['augmentation_factor']
         
-        print(f"\n📊 Augmenting minority classes: {minority_classes}")
-        print(f"📊 Augmentation factor: {augmentation_factor}x")
+        print(f"\nAugmenting minority classes: {minority_classes}")
+        print(f"Augmentation factor: {augmentation_factor}x")
         
         # Apply augmentation
         X_aug, y_aug = balance_classes(
@@ -245,15 +229,15 @@ class PreprocessingPipeline:
             seed=self.config['random_seed']
         )
         
-        print(f"\n✅ Training set before augmentation: {len(self.data['X_train']):,} windows")
-        print(f"✅ Training set after augmentation: {len(X_aug):,} windows")
+        print(f"\nTraining set before augmentation: {len(self.data['X_train']):,} windows")
+        print(f"Training set after augmentation: {len(X_aug):,} windows")
         
         # Update training data
         self.data['X_train'] = X_aug
         self.data['y_train'] = y_aug
         
         # Print new class distribution
-        print(f"\n📈 Class distribution after augmentation:")
+        print(f"\nClass distribution after augmentation:")
         unique, counts = np.unique(y_aug, return_counts=True)
         for cls, cnt in zip(unique, counts):
             pct = cnt / len(y_aug) * 100
@@ -291,7 +275,7 @@ class PreprocessingPipeline:
             with open(split_dir / f'metadata_{split}.json', 'w') as f:
                 json.dump(metadata, f, indent=2)
             
-            print(f"✅ Saved {split} split ({len(unique_subjects)} subjects) to {split_dir}")
+            print(f"Saved {split} split ({len(unique_subjects)} subjects) to {split_dir}")
         
         # Save preprocessing config
         config_path = output_dir / 'preprocessing_config.json'
@@ -301,7 +285,7 @@ class PreprocessingPipeline:
         with open(config_path, 'w') as f:
             json.dump(config_to_save, f, indent=2)
         
-        print(f"✅ Saved preprocessing config to {config_path}")
+        print(f"Saved preprocessing config to {config_path}")
         
         # Save summary
         summary = {
@@ -319,7 +303,7 @@ class PreprocessingPipeline:
         with open(summary_path, 'w') as f:
             json.dump(summary, f, indent=2)
         
-        print(f"✅ Saved summary to {summary_path}")
+        print(f"Saved summary to {summary_path}")
 
     def _process_group(self, subject_ids):
         group_windows = []
@@ -349,7 +333,6 @@ class PreprocessingPipeline:
         return np.concatenate(group_windows, axis=0), np.concatenate(group_labels, axis=0), np.concatenate(group_subject_ids, axis=0)
 
 def main():
-    """Run preprocessing pipeline with default configuration."""
     config = {
         # Data paths
         'data_root': 'data/raw/OU-SimilarGaitActivities',

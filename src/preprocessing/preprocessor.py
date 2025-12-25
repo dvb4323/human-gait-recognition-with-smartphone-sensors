@@ -1,8 +1,3 @@
-"""
-Preprocessing functions for sensor data.
-Includes normalization, filtering, and data transformations.
-"""
-
 import numpy as np
 from scipy import signal
 from typing import Tuple, Optional
@@ -10,20 +5,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class SensorPreprocessor:
-    """Preprocessing utilities for IMU sensor data."""
-    
+class SensorPreprocessor:   
     def __init__(self, normalize: bool = True, filter_data: bool = False,
                  filter_cutoff: float = 20.0, sampling_rate: float = 100.0):
-        """
-        Initialize preprocessor.
-        
-        Args:
-            normalize: Apply Z-score normalization
-            filter_data: Apply low-pass Butterworth filter
-            filter_cutoff: Cutoff frequency for filter (Hz)
-            sampling_rate: Sampling rate (Hz)
-        """
         self.normalize = normalize
         self.filter_data = filter_data
         self.filter_cutoff = filter_cutoff
@@ -35,12 +19,6 @@ class SensorPreprocessor:
         self.is_fitted = False
         
     def fit(self, data: np.ndarray):
-        """
-        Fit normalization parameters on training data.
-        
-        Args:
-            data: Training data, shape (n_samples, n_features)
-        """
         if self.normalize:
             self.mean = np.mean(data, axis=0)
             self.std = np.std(data, axis=0)
@@ -49,15 +27,6 @@ class SensorPreprocessor:
             self.is_fitted = True
     
     def transform(self, data: np.ndarray) -> np.ndarray:
-        """
-        Apply preprocessing transformations.
-        
-        Args:
-            data: Input data, shape (n_samples, n_features)
-            
-        Returns:
-            Preprocessed data, same shape as input
-        """
         processed = data.copy()
         
         # Apply filtering first (before normalization)
@@ -73,20 +42,10 @@ class SensorPreprocessor:
         return processed
     
     def fit_transform(self, data: np.ndarray) -> np.ndarray:
-        """Fit and transform in one step."""
         self.fit(data)
         return self.transform(data)
     
     def _apply_filter(self, data: np.ndarray) -> np.ndarray:
-        """
-        Apply low-pass Butterworth filter.
-        
-        Args:
-            data: Input data, shape (n_samples, n_features)
-            
-        Returns:
-            Filtered data
-        """
         # Design Butterworth filter
         nyquist = self.sampling_rate / 2.0
         normal_cutoff = self.filter_cutoff / nyquist
@@ -100,7 +59,6 @@ class SensorPreprocessor:
         return filtered
     
     def get_params(self) -> dict:
-        """Get preprocessing parameters."""
         return {
             'normalize': self.normalize,
             'filter_data': self.filter_data,
@@ -114,19 +72,6 @@ class SensorPreprocessor:
 
 def create_windows(data: np.ndarray, labels: np.ndarray, 
                    window_size: int, overlap: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Create fixed-length windows from time-series data.
-    
-    Args:
-        data: Input data, shape (n_samples, n_features)
-        labels: Labels for each sample, shape (n_samples,)
-        window_size: Number of samples per window
-        overlap: Overlap ratio (0.0 to 1.0)
-        
-    Returns:
-        windows: Shape (n_windows, window_size, n_features)
-        window_labels: Shape (n_windows,) - majority vote per window
-    """
     n_samples, n_features = data.shape
     step_size = int(window_size * (1 - overlap))
     
@@ -152,17 +97,6 @@ def create_windows(data: np.ndarray, labels: np.ndarray,
 
 
 def pad_sequence(data: np.ndarray, target_length: int, mode: str = 'edge') -> np.ndarray:
-    """
-    Pad sequence to target length.
-    
-    Args:
-        data: Input data, shape (n_samples, n_features)
-        target_length: Desired length
-        mode: Padding mode ('edge', 'constant', 'reflect')
-        
-    Returns:
-        Padded data, shape (target_length, n_features)
-    """
     if len(data) >= target_length:
         return data[:target_length]
     
@@ -182,16 +116,6 @@ def pad_sequence(data: np.ndarray, target_length: int, mode: str = 'edge') -> np
 
 
 def calculate_sensor_magnitude(data: np.ndarray, sensor_type: str = 'accel') -> np.ndarray:
-    """
-    Calculate magnitude of 3-axis sensor data.
-    
-    Args:
-        data: Input data with 6 channels [Gx, Gy, Gz, Ax, Ay, Az]
-        sensor_type: 'accel' or 'gyro'
-        
-    Returns:
-        Magnitude values, shape (n_samples,)
-    """
     if sensor_type == 'accel':
         # Accelerometer: columns 3, 4, 5
         mag = np.sqrt(data[:, 3]**2 + data[:, 4]**2 + data[:, 5]**2)
@@ -205,7 +129,6 @@ def calculate_sensor_magnitude(data: np.ndarray, sensor_type: str = 'accel') -> 
 
 
 def main():
-    """Test preprocessing functions."""
     # Create dummy data
     np.random.seed(42)
     data = np.random.randn(1000, 6)  # 1000 samples, 6 features
@@ -229,7 +152,7 @@ def main():
     print(f"Window shape: {windows.shape}")
     print(f"Labels shape: {window_labels.shape}")
     
-    print("\n✅ Preprocessing tests passed!")
+    print("\nPreprocessing tests passed!")
 
 
 if __name__ == "__main__":

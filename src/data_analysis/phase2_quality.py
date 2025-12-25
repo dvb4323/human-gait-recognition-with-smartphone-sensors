@@ -1,15 +1,3 @@
-"""
-Phase 2: Data Quality Assessment for OU-SimilarGaitActivities Dataset
-
-This script performs comprehensive data quality assessment including:
-- Missing value detection across all files
-- Outlier and anomaly detection
-- Static period identification
-- Sensor drift analysis
-- Timestamp continuity verification
-- Corrupted file detection
-"""
-
 import os
 import numpy as np
 import pandas as pd
@@ -27,15 +15,8 @@ plt.rcParams['figure.figsize'] = (14, 8)
 
 
 class OUSimilarGaitQualityAssessment:
-    """Data Quality Assessment for OU-SimilarGaitActivities dataset."""
     
     def __init__(self, data_root: str):
-        """
-        Initialize Quality Assessment class.
-        
-        Args:
-            data_root: Path to OU-SimilarGaitActivities directory
-        """
         self.data_root = Path(data_root)
         self.center_dir = self.data_root / "Center"
         
@@ -53,7 +34,6 @@ class OUSimilarGaitQualityAssessment:
         self.sensor_cols = ['Gx', 'Gy', 'Gz', 'Ax', 'Ay', 'Az']
         
     def load_single_file(self, filepath: Path) -> Optional[pd.DataFrame]:
-        """Load a single data file with error handling."""
         try:
             df = pd.read_csv(filepath, sep=r'\s+', skiprows=2, names=self.columns)
             
@@ -67,7 +47,6 @@ class OUSimilarGaitQualityAssessment:
             return None
     
     def phase2_1_missing_values(self, max_files: int = None):
-        """Phase 2.1: Check for missing values across all files"""
         print("=" * 80)
         print("PHASE 2.1: MISSING VALUE DETECTION")
         print("=" * 80)
@@ -76,7 +55,7 @@ class OUSimilarGaitQualityAssessment:
         if max_files:
             center_files = center_files[:max_files]
         
-        print(f"\n📁 Analyzing {len(center_files)} files...")
+        print(f"\nAnalyzing {len(center_files)} files...")
         
         files_with_missing = []
         missing_summary = {col: 0 for col in self.columns}
@@ -104,18 +83,18 @@ class OUSimilarGaitQualityAssessment:
             total_samples += len(df)
         
         # Report results
-        print(f"\n✅ FILES ANALYZED: {len(center_files)}")
-        print(f"📊 TOTAL SAMPLES: {total_samples:,}")
+        print(f"\nFILES ANALYZED: {len(center_files)}")
+        print(f"TOTAL SAMPLES: {total_samples:,}")
         
         if files_with_missing:
-            print(f"\n⚠️  FILES WITH MISSING VALUES: {len(files_with_missing)}")
+            print(f"\nFILES WITH MISSING VALUES: {len(files_with_missing)}")
             print(f"\nMissing value summary:")
             for col, count in missing_summary.items():
                 if count > 0:
                     pct = (count / total_samples) * 100
                     print(f"  {col}: {count} ({pct:.4f}%)")
         else:
-            print(f"\n✅ NO MISSING VALUES DETECTED")
+            print(f"\nNO MISSING VALUES DETECTED")
         
         self.quality_metrics['missing_values'] = {
             'files_with_missing': len(files_with_missing),
@@ -126,7 +105,6 @@ class OUSimilarGaitQualityAssessment:
         return files_with_missing
     
     def phase2_2_outlier_detection(self, max_files: int = None):
-        """Phase 2.2: Detect outliers using IQR method"""
         print("\n" + "=" * 80)
         print("PHASE 2.2: OUTLIER DETECTION")
         print("=" * 80)
@@ -138,7 +116,7 @@ class OUSimilarGaitQualityAssessment:
         # Collect all data for statistical analysis
         all_data = []
         
-        print(f"\n📁 Loading {len(center_files)} files for outlier analysis...")
+        print(f"\nLoading {len(center_files)} files for outlier analysis...")
         for filepath in tqdm(center_files, desc="Loading data"):
             df = self.load_single_file(filepath)
             if df is not None:
@@ -146,7 +124,7 @@ class OUSimilarGaitQualityAssessment:
         
         combined_data = pd.concat(all_data, ignore_index=True)
         
-        print(f"\n📊 Analyzing {len(combined_data):,} total samples...")
+        print(f"\nAnalyzing {len(combined_data):,} total samples...")
         
         # Calculate outliers using IQR method
         outlier_results = {}
@@ -172,7 +150,7 @@ class OUSimilarGaitQualityAssessment:
             }
         
         # Report results
-        print(f"\n🔍 OUTLIER DETECTION RESULTS (3*IQR method):")
+        print(f"\nOUTLIER DETECTION RESULTS (3*IQR method):")
         print(f"\n{'Sensor':<6} {'Outliers':<10} {'Percentage':<12} {'Bounds':<30} {'Actual Range':<20}")
         print("-" * 80)
         
@@ -187,15 +165,14 @@ class OUSimilarGaitQualityAssessment:
         return outlier_results
     
     def phase2_3_static_period_detection(self, max_files: int = 50, threshold: float = 0.01):
-        """Phase 2.3: Detect static periods (no movement)"""
         print("\n" + "=" * 80)
         print("PHASE 2.3: STATIC PERIOD DETECTION")
         print("=" * 80)
         
         center_files = sorted(self.center_dir.glob("*.txt"))[:max_files]
         
-        print(f"\n📁 Analyzing {len(center_files)} files...")
-        print(f"🎯 Threshold: {threshold} (std of sensor magnitude)")
+        print(f"\nAnalyzing {len(center_files)} files...")
+        print(f"Threshold: {threshold} (std of sensor magnitude)")
         
         static_periods = []
         
@@ -227,14 +204,14 @@ class OUSimilarGaitQualityAssessment:
         
         # Report results
         if static_periods:
-            print(f"\n⚠️  FILES WITH SIGNIFICANT STATIC PERIODS: {len(static_periods)}")
+            print(f"\nFILES WITH SIGNIFICANT STATIC PERIODS: {len(static_periods)}")
             print(f"\nTop 10 files with most static periods:")
             sorted_static = sorted(static_periods, key=lambda x: x['static_ratio'], reverse=True)[:10]
             for item in sorted_static:
                 print(f"  {item['file']}: {item['static_ratio']*100:.2f}% static "
                       f"({item['static_samples']}/{item['total_samples']} samples)")
         else:
-            print(f"\n✅ NO SIGNIFICANT STATIC PERIODS DETECTED")
+            print(f"\nNO SIGNIFICANT STATIC PERIODS DETECTED")
         
         self.quality_metrics['static_periods'] = {
             'files_with_static': len(static_periods),
@@ -244,14 +221,13 @@ class OUSimilarGaitQualityAssessment:
         return static_periods
     
     def phase2_4_sensor_drift_analysis(self, max_files: int = 50):
-        """Phase 2.4: Analyze sensor drift over time"""
         print("\n" + "=" * 80)
         print("PHASE 2.4: SENSOR DRIFT ANALYSIS")
         print("=" * 80)
         
         center_files = sorted(self.center_dir.glob("*.txt"))[:max_files]
         
-        print(f"\n📁 Analyzing {len(center_files)} files...")
+        print(f"\nAnalyzing {len(center_files)} files...")
         
         drift_results = []
         
@@ -276,13 +252,13 @@ class OUSimilarGaitQualityAssessment:
         
         # Report results
         if drift_results:
-            print(f"\n⚠️  FILES WITH POTENTIAL DRIFT: {len(drift_results)}")
+            print(f"\nFILES WITH POTENTIAL DRIFT: {len(drift_results)}")
             print(f"\nTop 10 files with most drift:")
             sorted_drift = sorted(drift_results, key=lambda x: x['max_drift'], reverse=True)[:10]
             for item in sorted_drift:
                 print(f"  {item['file']}: max drift = {item['max_drift']:.4f}")
         else:
-            print(f"\n✅ NO SIGNIFICANT SENSOR DRIFT DETECTED")
+            print(f"\nNO SIGNIFICANT SENSOR DRIFT DETECTED")
         
         self.quality_metrics['sensor_issues']['drift'] = {
             'files_with_drift': len(drift_results),
@@ -292,15 +268,14 @@ class OUSimilarGaitQualityAssessment:
         return drift_results
     
     def phase2_5_timestamp_continuity(self, max_files: int = 50):
-        """Phase 2.5: Verify timestamp continuity (100 Hz sampling)"""
         print("\n" + "=" * 80)
         print("PHASE 2.5: TIMESTAMP CONTINUITY VERIFICATION")
         print("=" * 80)
         
         center_files = sorted(self.center_dir.glob("*.txt"))[:max_files]
         
-        print(f"\n📁 Analyzing {len(center_files)} files...")
-        print(f"🎯 Expected sampling rate: 100 Hz")
+        print(f"\nAnalyzing {len(center_files)} files...")
+        print(f"Expected sampling rate: 100 Hz")
         
         # Check if all files have consistent sample counts
         sample_counts = []
@@ -311,7 +286,7 @@ class OUSimilarGaitQualityAssessment:
                 sample_counts.append(len(df))
         
         # Report statistics
-        print(f"\n📊 SAMPLE COUNT STATISTICS:")
+        print(f"\nSAMPLE COUNT STATISTICS:")
         print(f"  Mean: {np.mean(sample_counts):.0f} samples")
         print(f"  Std: {np.std(sample_counts):.0f} samples")
         print(f"  Min: {np.min(sample_counts)} samples ({np.min(sample_counts)/100:.2f}s)")
@@ -322,9 +297,9 @@ class OUSimilarGaitQualityAssessment:
         long_files = [c for c in sample_counts if c > 6000]   # > 60 seconds
         
         if short_files:
-            print(f"\n⚠️  {len(short_files)} files with < 10 seconds of data")
+            print(f"\n{len(short_files)} files with < 10 seconds of data")
         if long_files:
-            print(f"⚠️  {len(long_files)} files with > 60 seconds of data")
+            print(f"{len(long_files)} files with > 60 seconds of data")
         
         self.quality_metrics['timestamp_continuity'] = {
             'mean_samples': np.mean(sample_counts),
@@ -336,10 +311,9 @@ class OUSimilarGaitQualityAssessment:
         return sample_counts
     
     def run_all_phase2(self, max_files: int = None):
-        """Run all Phase 2 quality assessments"""
-        print("\n" + "🔍" * 40)
+        print("\n" + "-" * 40)
         print("RUNNING COMPLETE PHASE 2 DATA QUALITY ASSESSMENT")
-        print("🔍" * 40)
+        print("-" * 40)
         
         self.phase2_1_missing_values(max_files)
         self.phase2_2_outlier_detection(max_files)
@@ -352,19 +326,18 @@ class OUSimilarGaitQualityAssessment:
         print("PHASE 2 QUALITY ASSESSMENT SUMMARY")
         print("=" * 80)
         
-        print(f"\n✅ Corrupted files: {len(self.quality_metrics['corrupted_files'])}")
-        print(f"✅ Files with missing values: {self.quality_metrics['missing_values'].get('files_with_missing', 0)}")
-        print(f"✅ Files with static periods: {self.quality_metrics['static_periods'].get('files_with_static', 0)}")
-        print(f"✅ Files with drift: {self.quality_metrics['sensor_issues'].get('drift', {}).get('files_with_drift', 0)}")
+        print(f"\nCorrupted files: {len(self.quality_metrics['corrupted_files'])}")
+        print(f"Files with missing values: {self.quality_metrics['missing_values'].get('files_with_missing', 0)}")
+        print(f"Files with static periods: {self.quality_metrics['static_periods'].get('files_with_static', 0)}")
+        print(f"Files with drift: {self.quality_metrics['sensor_issues'].get('drift', {}).get('files_with_drift', 0)}")
         
-        print("\n" + "✅" * 40)
+        print("\n" + "-" * 40)
         print("PHASE 2 QUALITY ASSESSMENT COMPLETE!")
-        print("✅" * 40)
+        print("-" * 40)
         
         return self.quality_metrics
     
     def save_quality_report(self, output_path: str):
-        """Save quality metrics to JSON file"""
         import json
         
         # Convert numpy types
@@ -386,11 +359,10 @@ class OUSimilarGaitQualityAssessment:
         with open(output_path, 'w') as f:
             json.dump(metrics_converted, f, indent=2)
         
-        print(f"\n💾 Quality report saved to: {output_path}")
+        print(f"\n Quality report saved to: {output_path}")
 
 
 def main():
-    """Main execution function"""
     # Set data path
     data_root = "data/raw/OU-SimilarGaitActivities"
     

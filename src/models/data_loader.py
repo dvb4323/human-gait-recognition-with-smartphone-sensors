@@ -12,28 +12,12 @@ import tensorflow as tf
 class GaitDataLoader:
     """Load preprocessed data for model training."""
     
-    def __init__(self, data_dir: str = 'data/processed'):
-        """
-        Initialize data loader.
-        
-        Args:
-            data_dir: Directory containing processed data
-        """
+    def __init__(self, data_dir: str = 'data/processed'):       
         self.data_dir = Path(data_dir)
         self.data = {}
         self.metadata = {}
         
     def load_split(self, split: str) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Load a data split.
-        
-        Args:
-            split: 'train', 'val', or 'test'
-            
-        Returns:
-            X: Features, shape (n_samples, window_size, n_features)
-            y: Labels, shape (n_samples,)
-        """
         split_dir = self.data_dir / split
         
         X = np.load(split_dir / f'X_{split}.npy')
@@ -53,12 +37,6 @@ class GaitDataLoader:
         return X, y
     
     def load_all(self) -> Dict[str, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Load all splits.
-        
-        Returns:
-            Dictionary with 'train', 'val', 'test' splits
-        """
         self.data['train'] = self.load_split('train')
         self.data['val'] = self.load_split('val')
         self.data['test'] = self.load_split('test')
@@ -67,17 +45,6 @@ class GaitDataLoader:
     
     def create_tf_dataset(self, split: str, batch_size: int = 32, 
                          shuffle: bool = True) -> tf.data.Dataset:
-        """
-        Create TensorFlow dataset.
-        
-        Args:
-            split: 'train', 'val', or 'test'
-            batch_size: Batch size
-            shuffle: Whether to shuffle data
-            
-        Returns:
-            TensorFlow dataset
-        """
         X, y = self.data[split]
         
         dataset = tf.data.Dataset.from_tensor_slices((X.astype(np.float32), y.astype(np.int64)))
@@ -92,15 +59,6 @@ class GaitDataLoader:
         return dataset
     
     def get_class_weights(self, split: str = 'train') -> Dict[int, float]:
-        """
-        Calculate class weights for imbalanced data.
-        
-        Args:
-            split: Split to calculate weights from
-            
-        Returns:
-            Dictionary mapping class to weight
-        """
         _, y = self.data[split]
         
         # Count samples per class

@@ -19,16 +19,8 @@ from data_loader import GaitDataLoader
 from cnn_1d import create_1d_cnn, create_simple_1d_cnn, compile_model
 
 
-class ModelTrainer:
-    """Train and evaluate 1D CNN model."""
-    
+class ModelTrainer:    
     def __init__(self, config: dict):
-        """
-        Initialize trainer.
-        
-        Args:
-            config: Training configuration
-        """
         self.config = config
         self.model = None
         self.history = None
@@ -45,7 +37,7 @@ class ModelTrainer:
         self.results_dir = Path(f"results/{model_name}_{timestamp}")
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"\n📁 Results will be saved to: {self.results_dir}")
+        print(f"\nResults will be saved to: {self.results_dir}")
         
         # Save config
         with open(self.results_dir / 'config.json', 'w') as f:
@@ -98,14 +90,6 @@ class ModelTrainer:
         return callbacks
     
     def train(self, train_ds, val_ds, class_weights=None, callbacks=None):
-        """
-        Train model.
-        
-        Args:
-            train_ds: Training dataset
-            val_ds: Validation dataset
-            class_weights: Class weights for imbalanced data
-        """
         print("\n" + "=" * 80)
         print("TRAINING MODEL")
         print("=" * 80)
@@ -129,15 +113,15 @@ class ModelTrainer:
         )
         
         # Print model summary
-        print("\n📊 Model Architecture:")
+        print("\nModel Architecture:")
         self.model.summary()
-        print(f"\n📊 Total parameters: {self.model.count_params():,}")
+        print(f"\nTotal parameters: {self.model.count_params():,}")
         
         # Create callbacks
         callbacks = self.create_callbacks()
         
         # Train
-        print(f"\n🚀 Starting training for {self.config['epochs']} epochs...")
+        print(f"\nStarting training for {self.config['epochs']} epochs...")
         print(f"   Batch size: {self.config['batch_size']}")
         print(f"   Learning rate: {self.config['learning_rate']}")
         
@@ -150,12 +134,12 @@ class ModelTrainer:
             verbose=1
         )
         
-        print("\n✅ Training complete!")
+        print("\nTraining complete!")
         
         # Save final model
         final_model_path = self.results_dir / 'final_model.h5'
         self.model.save(final_model_path)
-        print(f"💾 Final model saved to: {final_model_path}")
+        print(f"Final model saved to: {final_model_path}")
         
         # Save history
         history_path = self.results_dir / 'history.json'
@@ -166,14 +150,6 @@ class ModelTrainer:
             json.dump(history_dict, f, indent=2)
     
     def evaluate(self, test_ds, X_test, y_test):
-        """
-        Evaluate model on test set.
-        
-        Args:
-            test_ds: Test dataset
-            X_test: Test features
-            y_test: Test labels
-        """
         print("\n" + "=" * 80)
         print("EVALUATING MODEL")
         print("=" * 80)
@@ -231,7 +207,7 @@ class ModelTrainer:
         plt.savefig(cm_path, dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"\n💾 Confusion matrix saved to: {cm_path}")
+        print(f"\nConfusion matrix saved to: {cm_path}")
     
     def plot_training_history(self, test_accuracy=None):
         """Plot and save training history with optional test accuracy."""
@@ -267,11 +243,10 @@ class ModelTrainer:
         plt.savefig(history_path, dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"💾 Training history plot saved to: {history_path}")
+        print(f"Training history plot saved to: {history_path}")
 
 
 def main():
-    """Main training function."""
     # Configuration
     config = {
         'model_name': '1d_cnn',
@@ -287,9 +262,9 @@ def main():
         'random_seed': 42
     }
     
-    print("\n" + "🚀" * 40)
+    print("\n" + "-" * 40)
     print("1D CNN TRAINING PIPELINE")
-    print("🚀" * 40)
+    print("-" * 40)
     
     # Load data
     print("\n" + "=" * 80)
@@ -301,14 +276,10 @@ def main():
     loader.print_summary()
     
     # Create TensorFlow datasets
-    print("\n📊 Creating TensorFlow datasets...")
+    print("\nCreating TensorFlow datasets...")
     train_ds = loader.create_tf_dataset('train', batch_size=config['batch_size'], shuffle=True)
     val_ds = loader.create_tf_dataset('val', batch_size=config['batch_size'], shuffle=False)
     test_ds = loader.create_tf_dataset('test', batch_size=config['batch_size'], shuffle=False)
-    
-    # Calculate class weights
-    # class_weights = loader.get_class_weights('train')
-    # print(f"\n📊 Class weights: {class_weights}")
     
     callbacks = [
         tf.keras.callbacks.EarlyStopping(
@@ -338,11 +309,11 @@ def main():
     trainer.plot_training_history(test_accuracy=results['test_accuracy'])
     
     # Print final summary
-    print("\n" + "✅" * 40)
+    print("\n" + "-" * 40)
     print("TRAINING COMPLETE!")
-    print("✅" * 40)
-    print(f"\n📊 Final Test Accuracy: {results['test_accuracy']:.4f}")
-    print(f"📁 Results saved to: {trainer.results_dir}")
+    print("-" * 40)
+    print(f"\n Final Test Accuracy: {results['test_accuracy']:.4f}")
+    print(f"Results saved to: {trainer.results_dir}")
     print("\n" + "=" * 80)
 
 
