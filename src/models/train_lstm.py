@@ -96,12 +96,7 @@ class LSTMTrainer:
         
         # Create model based on variant
         variant = self.config['model_variant']
-        if variant == 'simple':
-            self.model = create_simple_lstm(
-                input_shape=self.config['input_shape'],
-                num_classes=self.config['num_classes']
-            )
-        elif variant == 'bidirectional':
+        if variant == 'bidirectional':
             self.model = create_bidirectional_lstm(
                 input_shape=self.config['input_shape'],
                 num_classes=self.config['num_classes']

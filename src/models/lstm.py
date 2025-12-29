@@ -115,7 +115,6 @@ def compile_model(model: keras.Model,
 
 
 def main():
-    """Test model creation."""
     print("Creating LSTM models...\n")
     
     # Standard LSTM
