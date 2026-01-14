@@ -167,7 +167,21 @@ class LSTMTrainer:
         # Predictions
         y_pred_probs = self.model.predict(X_test, verbose=1)
         y_pred = np.argmax(y_pred_probs, axis=1)
-        
+        window_size = 5
+        y_pred_voted = np.copy(y_pred)
+        half_window = window_size // 2
+
+        for i in range(half_window, len(y_pred) - half_window):
+            window = y_pred[i - half_window : i + half_window + 1]
+            mode_result = stats.mode(window, keepdims=True)
+            y_pred_voted[i] = mode_result.mode[0]
+
+    # 4. Tính toán Accuracy sau khi Voting
+        from sklearn.metrics import accuracy_score
+        test_acc_voted = accuracy_score(y_test, y_pred_voted)
+
+        print(f"\n[INFO] Raw Test Accuracy: {test_acc:.4f}")
+        print(f"[INFO] Voted Test Accuracy (window={window_size}): {test_acc_voted:.4f}")
         # Classification report
         print("\n" + "=" * 80)
         print("CLASSIFICATION REPORT")
