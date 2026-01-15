@@ -204,6 +204,8 @@ class LSTMTrainer:
         results = {
             'test_loss': float(test_loss),
             'test_accuracy': float(test_acc),
+            'test_accuracy_voted': float(test_acc_voted),
+            'macro_f1_score': float(macro_f1),
             'classification_report': report_dict
         }
         
