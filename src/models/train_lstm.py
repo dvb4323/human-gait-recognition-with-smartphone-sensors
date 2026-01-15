@@ -276,8 +276,8 @@ def main():
         'batch_size': 64,
         'epochs': 50,
         'learning_rate': 0.001,
-        'early_stopping_patience': 10,
-        'reduce_lr_patience': 5,
+        'early_stopping_patience': 15,
+        'reduce_lr_patience': 4,
         'random_seed': 42
     }
     
