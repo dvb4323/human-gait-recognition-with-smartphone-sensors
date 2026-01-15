@@ -52,7 +52,9 @@ def create_bidirectional_lstm(input_shape: Tuple[int, int] = (200, 6),
     model = models.Sequential(name='BiLSTM')
     
     model.add(layers.Input(shape=input_shape))
-    
+
+    model.add(layers.SpatialDropout1D(0.2, name='spatial_dropout'))
+
     # Bidirectional LSTM layers
     model.add(layers.Bidirectional(
         layers.LSTM(128, return_sequences=True, recurrent_dropout=0.2),
