@@ -9,19 +9,19 @@ from tensorflow.keras import layers, models
 from typing import Tuple
 
 
-def create_cnn_lstm(input_shape: Tuple[int, int] = (200, 6),
+def create_cnn_lstm(input_shape: Tuple[int, int] = (100, 6),
                     num_classes: int = 5,
                     cnn_filters: list = [64, 128],
                     cnn_kernels: list = [5, 5],
                     lstm_units: int = 128,
                     dense_units: int = 64,
                     dropout_rate: float = 0.5) -> keras.Model:
-    
+
     model = models.Sequential(name='CNN_LSTM')
-    
+
     # Input layer
     model.add(layers.Input(shape=input_shape))
-    
+
     # CNN feature extraction blocks
     for i, (n_filters, kernel_size) in enumerate(zip(cnn_filters, cnn_kernels)):
         model.add(layers.Conv1D(
@@ -33,7 +33,7 @@ def create_cnn_lstm(input_shape: Tuple[int, int] = (200, 6),
         model.add(layers.BatchNormalization(name=f'bn_{i+1}'))
         model.add(layers.Activation('relu', name=f'relu_{i+1}'))
         model.add(layers.MaxPooling1D(pool_size=2, name=f'maxpool_{i+1}'))
-    
+
     # LSTM temporal modeling
     model.add(layers.LSTM(
         units=lstm_units,
@@ -42,51 +42,51 @@ def create_cnn_lstm(input_shape: Tuple[int, int] = (200, 6),
         name='lstm'
     ))
     model.add(layers.Dropout(dropout_rate, name='dropout_lstm'))
-    
+
     # Dense layers
     model.add(layers.Dense(dense_units, activation='relu', name='dense_1'))
     model.add(layers.Dropout(dropout_rate, name='dropout_dense'))
-    
+
     # Output layer
     model.add(layers.Dense(num_classes, activation='softmax', name='output'))
-    
+
     return model
 
 def compile_model(model: keras.Model,
                   learning_rate: float = 0.001,
                   metrics: list = None) -> keras.Model:
-    
+
     if metrics is None:
         metrics = ['accuracy']
-    
+
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
         loss='sparse_categorical_crossentropy',
         metrics=metrics
     )
-    
+
     return model
 
 
 def main():
     """Test model creation."""
     print("Creating CNN-LSTM models...\n")
-    
+
     # Standard CNN-LSTM
     model = create_cnn_lstm()
     print("Standard CNN-LSTM:")
     model.summary()
     print(f"\nTotal parameters: {model.count_params():,}\n")
-    
+
     # Compile and test
     print("\n" + "=" * 80)
     print("Testing model compilation...")
     model = compile_model(model)
     print("Model compiled successfully!")
-    
+
     # Test with dummy data
     import numpy as np
-    X_dummy = np.random.randn(32, 200, 6)  # Batch of 32 samples
+    X_dummy = np.random.randn(32, 100, 6)  # Batch of 32 samples
     y_pred = model.predict(X_dummy, verbose=0)
     print(f"\nPrediction test passed!")
     print(f"   Input shape: {X_dummy.shape}")

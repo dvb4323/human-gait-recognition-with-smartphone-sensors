@@ -1,0 +1,5 @@
+{
+  "test_loss": 0.5875863432884216,
+  "test_accuracy_overall": 0.8817782402038574,
+  "test_accuracy_balanced": 0.8134204881534602
+}
