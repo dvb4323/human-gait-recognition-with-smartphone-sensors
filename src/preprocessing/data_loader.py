@@ -1,8 +1,3 @@
-"""
-Data loader for OU-SimilarGaitActivities dataset.
-Loads Center sensor data and filters unlabeled samples.
-"""
-
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -12,16 +7,7 @@ import json
 
 
 class OUGaitDataLoader:
-    """Load and prepare OU-SimilarGaitActivities data for preprocessing."""
-    
     def __init__(self, data_root: str, sensor_position: str = 'Center'):
-        """
-        Initialize data loader.
-        
-        Args:
-            data_root: Path to OU-SimilarGaitActivities directory
-            sensor_position: Sensor position ('Center', 'Left', or 'Right')
-        """
         self.data_root = Path(data_root)
         self.sensor_dir = self.data_root / sensor_position
         self.protocol_dir = self.data_root / "PaperProtocol"
@@ -39,7 +25,6 @@ class OUGaitDataLoader:
         self.probe_subjects = self._load_subject_list('probe_list.txt')
         
     def _load_subject_list(self, filename: str) -> List[str]:
-        """Load gallery or probe subject list."""
         filepath = self.protocol_dir / filename
         with open(filepath, 'r') as f:
             # Extract subject IDs from format: T0_Id######
@@ -47,7 +32,6 @@ class OUGaitDataLoader:
         return subjects
     
     def _load_single_file(self, filepath: Path) -> Optional[pd.DataFrame]:
-        """Load a single data file."""
         try:
             df = pd.read_csv(filepath, sep=r'\s+', skiprows=2, names=self.columns)
             
@@ -62,20 +46,9 @@ class OUGaitDataLoader:
             return None
     
     def _extract_subject_id(self, filename: str) -> str:
-        """Extract subject ID from filename."""
         return filename.split('_')[1]
     
     def load_all_data(self, remove_unlabeled: bool = True, verbose: bool = True) -> Dict:
-        """
-        Load all data files.
-        
-        Args:
-            remove_unlabeled: If True, remove samples with ClassLabel = -1
-            verbose: Print progress information
-            
-        Returns:
-            Dictionary with subject data and metadata
-        """
         files = sorted(self.sensor_dir.glob("*.txt"))
         
         if verbose:
@@ -136,41 +109,36 @@ class OUGaitDataLoader:
         return self.data
     
     def _print_summary(self):
-        """Print data loading summary."""
         print("\n" + "=" * 80)
         print("DATA LOADING SUMMARY")
         print("=" * 80)
-        print(f"\n📁 Subjects loaded: {self.metadata['num_subjects']}")
-        print(f"📊 Total samples (before filtering): {self.metadata['total_samples_before']:,}")
-        print(f"📊 Total samples (after filtering): {self.metadata['total_samples_after']:,}")
-        print(f"🗑️  Samples removed: {self.metadata['samples_removed']:,} ({self.metadata['removal_percentage']:.2f}%)")
+        print(f"\nSubjects loaded: {self.metadata['num_subjects']}")
+        print(f"Total samples (before filtering): {self.metadata['total_samples_before']:,}")
+        print(f"Total samples (after filtering): {self.metadata['total_samples_after']:,}")
+        print(f"Samples removed: {self.metadata['samples_removed']:,} ({self.metadata['removal_percentage']:.2f}%)")
         
-        print(f"\n👥 Gallery subjects: {self.metadata['gallery_subjects']}")
-        print(f"👥 Probe subjects: {self.metadata['probe_subjects']}")
+        print(f"\nGallery subjects: {self.metadata['gallery_subjects']}")
+        print(f"Probe subjects: {self.metadata['probe_subjects']}")
         
-        print(f"\n📈 Class distribution (after filtering):")
+        print(f"\nClass distribution (after filtering):")
         total = sum(self.metadata['class_counts'].values())
         for class_id, count in sorted(self.metadata['class_counts'].items()):
             pct = (count / total * 100) if total > 0 else 0
             print(f"  Class {class_id}: {count:,} samples ({pct:.2f}%)")
     
     def get_subject_data(self, subject_id: str) -> Optional[Dict]:
-        """Get data for a specific subject."""
         return self.data.get(subject_id)
     
     def get_gallery_subjects(self) -> List[str]:
-        """Get list of gallery subject IDs."""
         return [sid for sid, data in self.data.items() if data['is_gallery']]
     
     def get_probe_subjects(self) -> List[str]:
-        """Get list of probe subject IDs."""
         return [sid for sid, data in self.data.items() if data['is_probe']]
     
     def save_metadata(self, output_path: str):
-        """Save metadata to JSON file."""
         with open(output_path, 'w') as f:
             json.dump(self.metadata, f, indent=2)
-        print(f"\n💾 Metadata saved to: {output_path}")
+        print(f"\nMetadata saved to: {output_path}")
 
 
 def main():

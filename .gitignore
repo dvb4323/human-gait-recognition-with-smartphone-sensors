@@ -9,3 +9,6 @@ data/
 /logs/
 results/logs
 human-gait/
+venv/
+.venv/
+*.pyc

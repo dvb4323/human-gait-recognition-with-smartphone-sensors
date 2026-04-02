@@ -1,8 +1,3 @@
-"""
-Data augmentation techniques for time-series sensor data.
-Focuses on augmenting minority classes to address class imbalance.
-"""
-
 import numpy as np
 from typing import Tuple
 import warnings
@@ -10,56 +5,19 @@ warnings.filterwarnings('ignore')
 
 
 class TimeSeriesAugmenter:
-    """Data augmentation for time-series IMU data."""
     
     def __init__(self, seed: int = 42):
-        """
-        Initialize augmenter.
-        
-        Args:
-            seed: Random seed for reproducibility
-        """
         self.rng = np.random.RandomState(seed)
     
     def jittering(self, data: np.ndarray, sigma: float = 0.05) -> np.ndarray:
-        """
-        Add random Gaussian noise to data.
-        
-        Args:
-            data: Input data, shape (window_size, n_features)
-            sigma: Standard deviation of noise
-            
-        Returns:
-            Augmented data, same shape as input
-        """
         noise = self.rng.normal(0, sigma, data.shape)
         return data + noise
     
     def scaling(self, data: np.ndarray, sigma: float = 0.1) -> np.ndarray:
-        """
-        Scale data by random factor.
-        
-        Args:
-            data: Input data, shape (window_size, n_features)
-            sigma: Standard deviation of scaling factor
-            
-        Returns:
-            Augmented data, same shape as input
-        """
         scale_factor = self.rng.normal(1.0, sigma, (1, data.shape[1]))
         return data * scale_factor
     
     def time_warping(self, data: np.ndarray, sigma: float = 0.2) -> np.ndarray:
-        """
-        Apply time warping by resampling with random speed.
-        
-        Args:
-            data: Input data, shape (window_size, n_features)
-            sigma: Standard deviation of warping factor
-            
-        Returns:
-            Augmented data, same shape as input
-        """
         window_size = data.shape[0]
         
         # Generate random warping curve
@@ -75,16 +33,6 @@ class TimeSeriesAugmenter:
         return warped
     
     def rotation(self, data: np.ndarray, max_angle: float = 15.0) -> np.ndarray:
-        """
-        Rotate sensor data (simulate sensor orientation change).
-        
-        Args:
-            data: Input data with 6 channels [Gx, Gy, Gz, Ax, Ay, Az]
-            max_angle: Maximum rotation angle in degrees
-            
-        Returns:
-            Augmented data, same shape as input
-        """
         # Random rotation angles for each axis
         angles = self.rng.uniform(-max_angle, max_angle, 3) * np.pi / 180
         
@@ -120,16 +68,6 @@ class TimeSeriesAugmenter:
         return rotated
     
     def augment(self, data: np.ndarray, methods: list = None) -> np.ndarray:
-        """
-        Apply multiple augmentation methods.
-        
-        Args:
-            data: Input data, shape (window_size, n_features)
-            methods: List of methods to apply. If None, randomly choose.
-            
-        Returns:
-            Augmented data
-        """
         if methods is None:
             # Randomly choose 1-2 methods
             all_methods = ['jittering', 'scaling', 'time_warping', 'rotation']
@@ -152,18 +90,6 @@ class TimeSeriesAugmenter:
     
     def augment_batch(self, data: np.ndarray, labels: np.ndarray,
                       target_class: int, augmentation_factor: int = 10) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Augment samples of a specific class.
-        
-        Args:
-            data: Input data, shape (n_samples, window_size, n_features)
-            labels: Labels, shape (n_samples,)
-            target_class: Class to augment
-            augmentation_factor: How many augmented samples per original
-            
-        Returns:
-            Augmented data and labels
-        """
         # Find samples of target class
         class_mask = labels == target_class
         class_samples = data[class_mask]
@@ -189,19 +115,6 @@ def balance_classes(data: np.ndarray, labels: np.ndarray,
                     minority_classes: list = [1, 2],
                     augmentation_factor: int = 10,
                     seed: int = 42) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Balance classes by augmenting minority classes.
-    
-    Args:
-        data: Input data, shape (n_samples, window_size, n_features)
-        labels: Labels, shape (n_samples,)
-        minority_classes: List of classes to augment
-        augmentation_factor: Augmentation factor for minority classes
-        seed: Random seed
-        
-    Returns:
-        Balanced data and labels
-    """
     augmenter = TimeSeriesAugmenter(seed=seed)
     
     balanced_data = data.copy()
@@ -222,7 +135,6 @@ def balance_classes(data: np.ndarray, labels: np.ndarray,
 
 
 def main():
-    """Test augmentation functions."""
     # Create dummy data
     np.random.seed(42)
     window_size = 200
@@ -276,7 +188,7 @@ def main():
     print(f"\nOriginal data shape: {data.shape}")
     print(f"Balanced data shape: {balanced_data.shape}")
     
-    print("\n✅ Augmentation tests passed!")
+    print("\nAugmentation tests passed!")
 
 
 if __name__ == "__main__":

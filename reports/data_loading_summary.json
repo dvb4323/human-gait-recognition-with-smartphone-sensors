@@ -1,0 +1,16 @@
+{
+  "num_subjects": 503,
+  "total_samples_before": 1764597,
+  "total_samples_after": 847315,
+  "samples_removed": 917282,
+  "removal_percentage": 51.98252065485774,
+  "class_counts": {
+    "0": 524124,
+    "1": 65249,
+    "2": 52498,
+    "3": 100242,
+    "4": 105202
+  },
+  "gallery_subjects": 252,
+  "probe_subjects": 251
+}

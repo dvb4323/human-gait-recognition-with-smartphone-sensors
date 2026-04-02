@@ -1,14 +1,3 @@
-"""
-Phase 1: Exploratory Data Analysis (EDA) for OU-SimilarGaitActivities Dataset
-
-This script performs comprehensive exploratory data analysis including:
-- Data loading and basic statistics
-- Sensor data distribution analysis
-- Activity class analysis
-- Step label analysis
-- Subject-level analysis
-"""
-
 import os
 import numpy as np
 import pandas as pd
@@ -26,15 +15,7 @@ plt.rcParams['figure.figsize'] = (12, 6)
 
 
 class OUSimilarGaitEDA:
-    """Exploratory Data Analysis for OU-SimilarGaitActivities dataset."""
-    
     def __init__(self, data_root: str):
-        """
-        Initialize EDA class.
-        
-        Args:
-            data_root: Path to OU-SimilarGaitActivities directory
-        """
         self.data_root = Path(data_root)
         self.center_dir = self.data_root / "Center"
         self.left_dir = self.data_root / "Left"
@@ -50,15 +31,6 @@ class OUSimilarGaitEDA:
         self.columns = ['Gx', 'Gy', 'Gz', 'Ax', 'Ay', 'Az', 'ClassLabel', 'StepLabel']
         
     def load_single_file(self, filepath: Path) -> pd.DataFrame:
-        """
-        Load a single data file.
-        
-        Args:
-            filepath: Path to the data file
-            
-        Returns:
-            DataFrame with sensor data
-        """
         try:
             # Skip first 2 lines (LineWidth: 8 and column headers)
             # Then read data with our predefined column names
@@ -77,25 +49,14 @@ class OUSimilarGaitEDA:
             return None
     
     def get_file_list(self, position: str = 'Center') -> List[Path]:
-        """
-        Get list of data files for a specific sensor position.
-        
-        Args:
-            position: Sensor position ('Center', 'Left', or 'Right')
-            
-        Returns:
-            List of file paths
-        """
         position_dir = self.data_root / position
         return sorted(position_dir.glob("*.txt"))
     
     def extract_subject_id(self, filename: str) -> str:
-        """Extract subject ID from filename."""
         # Format: T0_Id######_ActLabelAndStepInfor.txt
         return filename.split('_')[1]
     
     def phase1_1_basic_statistics(self):
-        """Phase 1.1: Data Loading & Basic Statistics"""
         print("=" * 80)
         print("PHASE 1.1: DATA LOADING & BASIC STATISTICS")
         print("=" * 80)
@@ -105,7 +66,7 @@ class OUSimilarGaitEDA:
         left_files = self.get_file_list('Left')
         right_files = self.get_file_list('Right')
         
-        print(f"\n📁 File Counts:")
+        print(f"\nFile Counts:")
         print(f"  Center: {len(center_files)} files")
         print(f"  Left:   {len(left_files)} files")
         print(f"  Right:  {len(right_files)} files")
@@ -117,7 +78,7 @@ class OUSimilarGaitEDA:
         
         all_subjects = center_subjects | left_subjects | right_subjects
         
-        print(f"\n👥 Subject Counts:")
+        print(f"\nSubject Counts:")
         print(f"  Total unique subjects: {len(all_subjects)}")
         print(f"  Subjects with Center data: {len(center_subjects)}")
         print(f"  Subjects with Left data: {len(left_subjects)}")
@@ -132,12 +93,12 @@ class OUSimilarGaitEDA:
         missing_right = center_subjects - right_subjects
         
         if missing_left:
-            print(f"\n⚠️  Subjects missing Left sensor: {len(missing_left)}")
+            print(f"\nSubjects missing Left sensor: {len(missing_left)}")
         if missing_right:
-            print(f"⚠️  Subjects missing Right sensor: {len(missing_right)}")
+            print(f"Subjects missing Right sensor: {len(missing_right)}")
         
         # Load sample files to analyze
-        print(f"\n📊 Loading sample files for analysis...")
+        print(f"\nLoading sample files for analysis...")
         sample_files = center_files[:10]  # Load first 10 files
         
         samples_per_file = []
@@ -155,7 +116,7 @@ class OUSimilarGaitEDA:
                 samples_per_file.append(num_samples)
                 durations.append(duration)
         
-        print(f"\n📈 Sample Statistics (from {len(sample_files)} files):")
+        print(f"\nSample Statistics (from {len(sample_files)} files):")
         print(f"  Samples per file - Mean: {np.mean(samples_per_file):.0f}, "
               f"Std: {np.std(samples_per_file):.0f}")
         print(f"  Samples per file - Min: {np.min(samples_per_file)}, "
@@ -187,28 +148,27 @@ class OUSimilarGaitEDA:
         return self.statistics
     
     def phase1_2_sensor_distribution(self):
-        """Phase 1.2: Sensor Data Distribution Analysis"""
         print("\n" + "=" * 80)
         print("PHASE 1.2: SENSOR DATA DISTRIBUTION ANALYSIS")
         print("=" * 80)
         
         if not self.sample_data:
-            print("⚠️  No sample data loaded. Run phase1_1_basic_statistics() first.")
+            print("No sample data loaded. Run phase1_1_basic_statistics() first.")
             return
         
         # Combine all sample data
         all_data = pd.concat(self.sample_data.values(), ignore_index=True)
         
-        print(f"\n📊 Combined sample data: {len(all_data)} total samples")
+        print(f"\nCombined sample data: {len(all_data)} total samples")
         
         # Accelerometer statistics
-        print("\n🔵 ACCELEROMETER STATISTICS:")
+        print("\nACCELEROMETER STATISTICS:")
         accel_cols = ['Ax', 'Ay', 'Az']
         accel_stats = all_data[accel_cols].describe()
         print(accel_stats)
         
         # Gyroscope statistics
-        print("\n🟢 GYROSCOPE STATISTICS:")
+        print("\nGYROSCOPE STATISTICS:")
         gyro_cols = ['Gx', 'Gy', 'Gz']
         gyro_stats = all_data[gyro_cols].describe()
         print(gyro_stats)
@@ -216,13 +176,13 @@ class OUSimilarGaitEDA:
         # Check for missing values
         missing = all_data.isnull().sum()
         if missing.sum() > 0:
-            print("\n⚠️  MISSING VALUES DETECTED:")
+            print("\nMISSING VALUES DETECTED:")
             print(missing[missing > 0])
         else:
-            print("\n✅ No missing values detected")
+            print("\nNo missing values detected")
         
         # Correlation analysis
-        print("\n🔗 CORRELATION ANALYSIS:")
+        print("\nCORRELATION ANALYSIS:")
         print("\nAccelerometer correlation:")
         print(all_data[accel_cols].corr())
         print("\nGyroscope correlation:")
@@ -237,13 +197,12 @@ class OUSimilarGaitEDA:
         return accel_stats, gyro_stats
     
     def phase1_3_activity_analysis(self):
-        """Phase 1.3: Activity Class Analysis"""
         print("\n" + "=" * 80)
         print("PHASE 1.3: ACTIVITY CLASS ANALYSIS")
         print("=" * 80)
         
         if not self.sample_data:
-            print("⚠️  No sample data loaded. Run phase1_1_basic_statistics() first.")
+            print("No sample data loaded. Run phase1_1_basic_statistics() first.")
             return
         
         # Combine all sample data
@@ -252,11 +211,11 @@ class OUSimilarGaitEDA:
         # Class distribution
         class_counts = all_data['ClassLabel'].value_counts().sort_index()
         
-        print("\n📊 ACTIVITY CLASS DISTRIBUTION:")
+        print("\nACTIVITY CLASS DISTRIBUTION:")
         print(class_counts)
         print(f"\nTotal samples: {len(all_data)}")
         
-        print("\n📈 Class Percentages:")
+        print("\nClass Percentages:")
         class_pct = (class_counts / len(all_data) * 100).round(2)
         for cls, pct in class_pct.items():
             print(f"  Class {cls}: {pct}%")
@@ -270,13 +229,13 @@ class OUSimilarGaitEDA:
             4: "Walking down slope"
         }
         
-        print("\n🏃 ACTIVITY LABELS:")
+        print("\nACTIVITY LABELS:")
         for cls, name in activity_names.items():
             if cls in class_counts.index:
                 print(f"  Class {cls}: {name} ({class_counts[cls]} samples)")
         
         # Analyze transitions
-        print("\n🔄 ACTIVITY TRANSITIONS:")
+        print("\nACTIVITY TRANSITIONS:")
         transitions = []
         for subject_id, df in self.sample_data.items():
             class_changes = df['ClassLabel'].diff().fillna(0) != 0
@@ -297,13 +256,12 @@ class OUSimilarGaitEDA:
         return class_counts
     
     def phase1_4_step_analysis(self):
-        """Phase 1.4: Step Label Analysis"""
         print("\n" + "=" * 80)
         print("PHASE 1.4: STEP LABEL ANALYSIS")
         print("=" * 80)
         
         if not self.sample_data:
-            print("⚠️  No sample data loaded. Run phase1_1_basic_statistics() first.")
+            print("No sample data loaded. Run phase1_1_basic_statistics() first.")
             return
         
         # Combine all sample data
@@ -313,7 +271,7 @@ class OUSimilarGaitEDA:
         non_step_count = (all_data['StepLabel'] == -1).sum()
         step_count = (all_data['StepLabel'] != -1).sum()
         
-        print(f"\n👣 STEP LABEL DISTRIBUTION:")
+        print(f"\nSTEP LABEL DISTRIBUTION:")
         print(f"  Non-step data (label = -1): {non_step_count} samples ({non_step_count/len(all_data)*100:.2f}%)")
         print(f"  Step data (label >= 0): {step_count} samples ({step_count/len(all_data)*100:.2f}%)")
         
@@ -327,7 +285,7 @@ class OUSimilarGaitEDA:
             unique_steps = df[df['StepLabel'] != -1]['StepLabel'].nunique()
             steps_per_subject.append(unique_steps)
         
-        print(f"\n📊 STEPS PER RECORDING:")
+        print(f"\nSTEPS PER RECORDING:")
         print(f"  Mean: {np.mean(steps_per_subject):.2f}")
         print(f"  Std: {np.std(steps_per_subject):.2f}")
         print(f"  Min: {np.min(steps_per_subject)}")
@@ -343,7 +301,6 @@ class OUSimilarGaitEDA:
         return self.statistics['step_stats']
     
     def phase1_5_subject_analysis(self):
-        """Phase 1.5: Subject-Level Analysis"""
         print("\n" + "=" * 80)
         print("PHASE 1.5: SUBJECT-LEVEL ANALYSIS")
         print("=" * 80)
@@ -359,16 +316,16 @@ class OUSimilarGaitEDA:
             with open(probe_file, 'r') as f:
                 probe_subjects = [line.strip().split('_')[1] for line in f if line.strip()]
             
-            print(f"\n📋 GALLERY/PROBE PROTOCOL:")
+            print(f"\nGALLERY/PROBE PROTOCOL:")
             print(f"  Gallery subjects: {len(gallery_subjects)}")
             print(f"  Probe subjects: {len(probe_subjects)}")
             
             # Check for overlap
             overlap = set(gallery_subjects) & set(probe_subjects)
             if overlap:
-                print(f"  ⚠️  Overlap: {len(overlap)} subjects in both sets")
+                print(f" Overlap: {len(overlap)} subjects in both sets")
             else:
-                print(f"  ✅ No overlap between gallery and probe")
+                print(f" No overlap between gallery and probe")
             
             self.statistics['protocol'] = {
                 'gallery_count': len(gallery_subjects),
@@ -377,7 +334,7 @@ class OUSimilarGaitEDA:
             }
         
         # Subject variability
-        print(f"\n📊 SUBJECT VARIABILITY (from {len(self.sample_data)} samples):")
+        print(f"\nSUBJECT VARIABILITY (from {len(self.sample_data)} samples):")
         
         subject_durations = []
         subject_activities = []
@@ -397,10 +354,9 @@ class OUSimilarGaitEDA:
         return self.statistics
     
     def run_all_phase1(self):
-        """Run all Phase 1 analyses"""
-        print("\n" + "🚀" * 40)
+        print("\n" + "-" * 40)
         print("RUNNING COMPLETE PHASE 1 EDA")
-        print("🚀" * 40)
+        print("-" * 40)
         
         self.phase1_1_basic_statistics()
         self.phase1_2_sensor_distribution()
@@ -408,14 +364,13 @@ class OUSimilarGaitEDA:
         self.phase1_4_step_analysis()
         self.phase1_5_subject_analysis()
         
-        print("\n" + "✅" * 40)
+        print("\n" + "-" * 40)
         print("PHASE 1 EDA COMPLETE!")
-        print("✅" * 40)
+        print("-" * 40)
         
         return self.statistics
     
     def save_statistics(self, output_path: str):
-        """Save statistics to JSON file"""
         import json
         
         # Convert numpy types to Python types
@@ -437,11 +392,10 @@ class OUSimilarGaitEDA:
         with open(output_path, 'w') as f:
             json.dump(stats_converted, f, indent=2)
         
-        print(f"\n💾 Statistics saved to: {output_path}")
+        print(f"\nStatistics saved to: {output_path}")
 
 
 def main():
-    """Main execution function"""
     # Set data path
     data_root = "data/raw/OU-SimilarGaitActivities"
     
